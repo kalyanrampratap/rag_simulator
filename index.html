@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAG Model Simulator</title>
+
+<style>
+
+body{
+font-family:Arial, sans-serif;
+background:#0f172a;
+color:white;
+margin:0;
+padding:20px;
+text-align:center;
+}
+
+h1{
+color:#38bdf8;
+}
+
+.wrapper{
+width:90%;
+margin:auto;
+}
+
+textarea{
+width:80%;
+height:120px;
+padding:10px;
+border-radius:6px;
+border:none;
+margin-top:10px;
+}
+
+input{
+width:60%;
+padding:10px;
+border-radius:6px;
+border:none;
+margin-top:10px;
+}
+
+button{
+margin-top:20px;
+padding:10px 25px;
+border:none;
+border-radius:6px;
+background:#22c55e;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.pipeline{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+margin-top:40px;
+gap:15px;
+}
+
+.box{
+width:140px;
+height:90px;
+background:#1e293b;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:14px;
+padding:5px;
+transition:0.3s;
+}
+
+.active{
+background:#0ea5e9;
+transform:scale(1.1);
+}
+
+.output{
+margin-top:30px;
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+min-height:150px;
+text-align:left;
+}
+
+.stepTitle{
+color:#38bdf8;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>RAG Pipeline Simulator</h1>
+<p>Learn Retrieval-Augmented Generation step-by-step</p>
+
+<div class="wrapper">
+
+<h3>Knowledge Documents</h3>
+
+<textarea id="docs">
+Artificial Intelligence is transforming industries.
+RAG combines search with large language models.
+Vector databases store embeddings for semantic search.
+Embeddings convert text into numerical vectors.
+</textarea>
+
+<br>
+
+<input id="query" placeholder="Ask a question">
+
+<br>
+
+<button onclick="nextStep()">Next Step</button>
+
+<div class="pipeline">
+
+<div class="box" id="s1">Documents</div>
+<div class="box" id="s2">Chunking</div>
+<div class="box" id="s3">Embeddings</div>
+<div class="box" id="s4">Vector DB</div>
+<div class="box" id="s5">User Query</div>
+<div class="box" id="s6">Similarity Search</div>
+<div class="box" id="s7">Retrieve Context</div>
+<div class="box" id="s8">Build Prompt</div>
+<div class="box" id="s9">LLM Answer</div>
+
+</div>
+
+<div class="output" id="output">
+Click **Next Step** to start the RAG process.
+</div>
+
+</div>
+
+<script>
+
+let step=0
+let chunks=[]
+let embeddings=[]
+let scores=[]
+
+function activate(n){
+document.querySelectorAll(".box").forEach(b=>b.classList.remove("active"))
+document.getElementById("s"+n).classList.add("active")
+}
+
+function randomVector(){
+return [Math.random().toFixed(2),Math.random().toFixed(2),Math.random().toFixed(2)]
+}
+
+function cosineSim(){
+return Math.random().toFixed(2)
+}
+
+function nextStep(){
+
+step++
+
+let docs=document.getElementById("docs").value
+let q=document.getElementById("query").value
+let out=document.getElementById("output")
+
+if(step==1){
+
+activate(1)
+
+out.innerHTML=
+"<div class='stepTitle'>Step 1: Load Documents</div>"+
+docs.replace(/\n/g,"<br>")
+
+}
+
+else if(step==2){
+
+activate(2)
+
+chunks=docs.split(".").filter(c=>c.trim())
+
+out.innerHTML="<div class='stepTitle'>Step 2: Document Chunking</div>"
+
+chunks.forEach((c,i)=>{
+out.innerHTML+="Chunk "+(i+1)+": "+c+"<br>"
+})
+
+}
+
+else if(step==3){
+
+activate(3)
+
+embeddings=chunks.map(()=>randomVector())
+
+out.innerHTML="<div class='stepTitle'>Step 3: Create Embeddings</div>"
+
+embeddings.forEach((v,i)=>{
+out.innerHTML+="Chunk "+(i+1)+" → ["+v+"]<br>"
+})
+
+}
+
+else if(step==4){
+
+activate(4)
+
+out.innerHTML="<div class='stepTitle'>Step 4: Store in Vector Database</div>"
+
+chunks.forEach((c,i)=>{
+out.innerHTML+=c+" → "+embeddings[i]+"<br>"
+})
+
+}
+
+else if(step==5){
+
+activate(5)
+
+out.innerHTML=
+"<div class='stepTitle'>Step 5: User Query</div>"+
+q
+
+}
+
+else if(step==6){
+
+activate(6)
+
+scores=chunks.map(()=>cosineSim())
+
+out.innerHTML="<div class='stepTitle'>Step 6: Similarity Search</div>"
+
+scores.forEach((s,i)=>{
+out.innerHTML+="Chunk "+(i+1)+" Similarity: "+s+"<br>"
+})
+
+}
+
+else if(step==7){
+
+activate(7)
+
+let pairs=chunks.map((c,i)=>({text:c,score:scores[i]}))
+pairs.sort((a,b)=>b.score-a.score)
+
+let top=pairs.slice(0,2)
+
+out.innerHTML="<div class='stepTitle'>Step 7: Retrieved Context</div>"
+
+top.forEach(c=>{
+out.innerHTML+=c.text+" (score "+c.score+")<br>"
+})
+
+}
+
+else if(step==8){
+
+activate(8)
+
+let context=chunks.slice(0,2).join(" ")
+
+out.innerHTML=
+"<div class='stepTitle'>Step 8: Prompt Sent to LLM</div>"+
+"<b>Context:</b><br>"+context+
+"<br><br><b>Question:</b><br>"+q
+
+}
+
+else if(step==9){
+
+activate(9)
+
+out.innerHTML=
+"<div class='stepTitle'>Step 9: LLM Generated Answer</div>"+
+"Using retrieved knowledge, the system generates a grounded answer. "+
+"RAG improves accuracy by combining retrieval with language generation."
+
+step=0
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
